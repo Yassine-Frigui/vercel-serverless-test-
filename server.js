@@ -4,8 +4,6 @@ const port = process.env.PORT || 3000;
 
 require('dotenv').config();
 
-const Brevo = require('@getbrevo/brevo');
-
 
 var date = new Date();
 
@@ -16,23 +14,30 @@ app.get('/', (req, res) => {
 });
 
 app.get('/emailer', async (req, res) => {
-  let defaultClient = Brevo.ApiClient.instance;
-  let apiKey = defaultClient.authentications['apiKey'];
-  apiKey.apiKey = process.env.brevo_api_key;
-
-  let apiInstance = new Brevo.TransactionalEmailsApi();
-  let sendSmtpEmail = new Brevo.SendSmtpEmail();
-
-  sendSmtpEmail.subject = "Test Email from Node.js Server";
-  sendSmtpEmail.htmlContent = `<html><body><h1>Hello!</h1><p>This is a formatted test email sent at ${new Date().toISOString()}.</p></body></html>`;
-  sendSmtpEmail.sender = {"name": "Node Server", "email": process.env.target_email};
-  sendSmtpEmail.to = [{"email": process.env.target_email}];
-
   try {
-    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    res.send("Email sent successfully!");
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.brevo_api_key,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: 'Node Server', email: process.env.target_email },
+        to: [{ email: process.env.target_email }],
+        subject: 'Test Email from Node.js Server',
+        htmlContent: `<html><body><h1>Hello!</h1><p>This is a formatted test email sent at ${new Date().toISOString()}.</p></body></html>`,
+      }),
+    });
+
+    if (response.ok) {
+      res.send('Email sent successfully!');
+    } else {
+      const error = await response.text();
+      res.status(500).send('Error sending email: ' + error);
+    }
   } catch (error) {
-    res.status(500).send("Error sending email: " + error.message);
+    res.status(500).send('Error: ' + error.message);
   }
 });
 
