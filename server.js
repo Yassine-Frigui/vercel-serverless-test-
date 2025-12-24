@@ -1,8 +1,12 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
 require('dotenv').config();
+
+app.use(cors({ origin: process.env.netlify_url }));
+app.use(express.json());
 
 
 var date = new Date();
@@ -13,7 +17,8 @@ app.get('/', (req, res) => {
   res.send('auto deploy at :  ' + date.toISOString());
 });
 
-app.get('/emailer', async (req, res) => {
+app.post('/emailer', async (req, res) => {
+  const { name, date_time } = req.body;
   try {
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
@@ -25,19 +30,19 @@ app.get('/emailer', async (req, res) => {
       body: JSON.stringify({
         sender: { name: 'Node Server', email: process.env.target_email },
         to: [{ email: process.env.target_email }],
-        subject: 'Test Email from Node.js Server',
-        htmlContent: `<html><body><h1>Hello!</h1><p>This is a formatted test email sent at ${new Date().toISOString()}.</p></body></html>`,
+        subject: `Email for ${name}`,
+        htmlContent: `<html><body><h1>Hello ${name}!</h1><p>This is a formatted test email sent at ${date_time}.</p></body></html>`,
       }),
     });
 
     if (response.ok) {
-      res.send('Email sent successfully!');
+      res.json({ message: 'Email sent successfully!' });
     } else {
       const error = await response.text();
-      res.status(500).send('Error sending email: ' + error);
+      res.status(500).json({ message: 'Error sending email: ' + error });
     }
   } catch (error) {
-    res.status(500).send('Error: ' + error.message);
+    res.status(500).json({ message: 'Error: ' + error.message });
   }
 });
 
