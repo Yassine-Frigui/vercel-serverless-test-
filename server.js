@@ -36,6 +36,10 @@ app.get('/emailer', async (req, res) => {
   }
 });
 
+app.get('/health', (req, res) => {
+  res.send('Server is healthy');
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
