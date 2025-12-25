@@ -2,7 +2,7 @@ name: Keep Alive
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,4 +11,4 @@ jobs:
 
     steps:
       - name: Run cURL on Website
-        run: curl -f ${{ secrets.VERCEL_URL }}/health || exit 1
+        run: curl -I https://vercel-serverless-test-nine.vercel.app/health
