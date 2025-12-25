@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  ping:
+  curl-website:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Ping server
+      - name: Run cURL on Website
         run: curl -f ${{ secrets.VERCEL_URL }}/health || exit 1
